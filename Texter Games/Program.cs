@@ -148,7 +148,7 @@ namespace Texter_Games
                             }
                             break;
                         case 3: //Do "Gain Item"
-                            Item item = ItemManager.getRandomItem();
+                            Item item = ItemManager.getRandomItem(contestant);
                             contestant.Inventory.Add(item);
                             Messages.printGainItemMessage(contestant, item);
                             break;

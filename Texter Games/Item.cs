@@ -372,7 +372,7 @@ namespace Texter_Games
 
         public string getRandomAttackLoseMessage(Random ram)
         {
-            string[] loseMessage = { "The arrow missed {1} and hit the tree next to them.", "{0} misfired and the arrow dropped to the ground right in front of them." };
+            string[] loseMessage = { "The power drill missed {1} and hit the tree next to them.", "{0}'s power drill wouldn't turn on, and {1} ran away." };
             return loseMessage[ram.Next(0, loseMessage.Length)];
         }
     }

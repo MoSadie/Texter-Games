@@ -94,6 +94,7 @@ namespace Texter_Games
                 for (int i = 0; i < living.Count; i++)
                 {
                     Contestant contestant = living[i];
+                    contestant.modSanity(contestant.ram.Next(-15,0));
                     int action = contestant.ram.Next(1, 5);
                     switch (action)
                     {
@@ -134,13 +135,13 @@ namespace Texter_Games
                             {
                                 dead.Add(target);
                                 living.Remove(target);
-                                contestant.modSanity(contestant.ram.Next(0, 10));
+                                contestant.modSanity(contestant.ram.Next(-10, 10));
                                 Messages.printAttackMessage(contestant, target, contestant.Inventory[contestant.ram.Next(contestant.Inventory.Count)], true);
                             } else
                             {
                                 target.modSurvival(target.ram.Next(0, 6));
                                 target.modWeapon(target.ram.Next(0, 6));
-                                target.modSanity(-1);
+                                target.modSanity(-5);
                                 contestant.modSurvival(contestant.ram.Next(0, 6));
                                 contestant.modWeapon(contestant.ram.Next(0, 6));
                                 contestant.modSanity(-1);
@@ -153,19 +154,88 @@ namespace Texter_Games
                             Messages.printGainItemMessage(contestant, item);
                             break;
                         case 4: //Do "Die"
-                            if (living.Count == 1 || day < 3)
+                            if (living.Count == 1 || (day < 3 && contestant.ram.Next(1, 51) <= contestant.sanity / 2))
                             {
-                                Messages.printNothingMessage(contestant);
+                                int actionTake2 = contestant.ram.Next(1, 4);
+                                switch (actionTake2)
+                                {
+                                    case 1: //Does "nothing"
+                                        Messages.printNothingMessage(contestant);
+                                        break;
+                                    case 2: //Does "attack"
+                                        Contestant targetTake2;
+                                        if (living.Count == 1)
+                                        {
+                                            Messages.printNothingMessage(contestant);
+                                            break;
+                                        }
+                                        do
+                                        {
+                                            targetTake2 = living[contestant.ram.Next(0, living.Count)];
+                                        } while (targetTake2.Equals(contestant));
+                                        int attackTake2 = contestant.weaponSkill;
+                                        if (contestant.wounded) attackTake2 = attackTake2 - contestant.ram.Next(0, contestant.weaponSkill);
+                                        if (contestant.Inventory.Count > 0)
+                                        {
+                                            foreach (Item attackItem in contestant.Inventory)
+                                            {
+                                                attackTake2 += attackItem.getWeaponMod();
+                                            }
+                                        }
+
+                                        int defenseTake2 = (int)((targetTake2.weaponSkill * 0.5) + (targetTake2.survivalSkill * 0.25));
+                                        if (targetTake2.Inventory.Count > 0)
+                                        {
+                                            foreach (Item defenseItem in targetTake2.Inventory)
+                                            {
+                                                defenseTake2 += defenseItem.getWeaponMod();
+                                            }
+                                        }
+
+                                        if (attackTake2 > defenseTake2)
+                                        {
+                                            dead.Add(targetTake2);
+                                            living.Remove(targetTake2);
+                                            contestant.modSanity(contestant.ram.Next(-10, 10));
+                                            Messages.printAttackMessage(contestant, targetTake2, contestant.Inventory[contestant.ram.Next(contestant.Inventory.Count)], true);
+                                        }
+                                        else
+                                        {
+                                            targetTake2.modSurvival(targetTake2.ram.Next(0, 6));
+                                            targetTake2.modWeapon(targetTake2.ram.Next(0, 6));
+                                            targetTake2.modSanity(-5);
+                                            contestant.modSurvival(contestant.ram.Next(0, 6));
+                                            contestant.modWeapon(contestant.ram.Next(0, 6));
+                                            contestant.modSanity(-1);
+                                            Messages.printAttackMessage(contestant, targetTake2, contestant.Inventory[contestant.ram.Next(contestant.Inventory.Count)], false);
+                                        }
+                                        break;
+                                    case 3: //Do "Gain Item"
+                                        Item itemTake2 = ItemManager.getRandomItem(contestant);
+                                        contestant.Inventory.Add(itemTake2);
+                                        Messages.printGainItemMessage(contestant, itemTake2);
+                                        break;
+                                }
                                 break;
                             }
-                            dead.Add(contestant);
-                            living.Remove(contestant);
-                            Messages.printDeathMessage(contestant);
-                            break;
+                            else
+                            {
+                                dead.Add(contestant);
+                                Console.Write("BANANA");
+                                living.Remove(contestant);
+                                Messages.printDeathMessage(contestant);
+                                break;
+                            }
                         default:
                             Messages.printNothingMessage(contestant);
                             break;
                     }
+                }
+                Console.WriteLine();
+                Console.WriteLine("Currently living:");
+                foreach (Contestant contestant in living)
+                {
+                    Console.WriteLine(" - " + contestant.ToString());
                 }
                 Console.WriteLine();
                 if (living.Count() > 1)

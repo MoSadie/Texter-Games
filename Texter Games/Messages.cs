@@ -26,7 +26,10 @@ namespace Texter_Games
         {
             Random ram = new Random(DateTime.Now.Second + DateTime.Now.Minute + DateTime.Now.Hour + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year + contestant.ram.Next());
             Console.WriteLine();
-            Console.WriteLine(string.Format(gainItemMessage[ram.Next(0, gainItemMessage.Length)], contestant.name, item.getName()));
+            if (item.getRandomItemGainMessage(ram) != null)
+                Console.WriteLine(string.Format(item.getRandomItemGainMessage(ram), contestant.name, item.getName()));
+            else
+                Console.WriteLine(string.Format(gainItemMessage[ram.Next(0, gainItemMessage.Length)], contestant.name, item.getName()));
         }
 
 
@@ -42,13 +45,22 @@ namespace Texter_Games
             Random ram = new Random(DateTime.Now.Second + DateTime.Now.Minute + DateTime.Now.Hour + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year + attacker.ram.Next() + defender.ram.Next() + weapon.getWeaponMod());
             Console.WriteLine();
             object[] args = { attacker.name, defender.name, weapon.getName() };
-            Console.WriteLine(string.Format(attackMessage[ram.Next(0, attackMessage.Length)], args));
+            if (weapon.getRandomAttackMessage(ram) != null)
+                Console.WriteLine(string.Format(weapon.getRandomAttackMessage(ram), args));
+            else
+                Console.WriteLine(string.Format(attackMessage[ram.Next(0, attackMessage.Length)], args));
             if (success)
             {
-                Console.WriteLine(string.Format(attackWinMessage[ram.Next(0, attackWinMessage.Length)], args));
+                if (weapon.getRandomAttackWinMessage(ram) != null)
+                    Console.WriteLine(string.Format(weapon.getRandomAttackWinMessage(ram), args));
+                else
+                    Console.WriteLine(string.Format(attackWinMessage[ram.Next(0, attackWinMessage.Length)], args));
             } else
             {
-                Console.WriteLine(string.Format(attackLoseMessage[ram.Next(0, attackLoseMessage.Length)], args));
+                if (weapon.getRandomAttackLoseMessage(ram) != null)
+                    Console.WriteLine(string.Format(weapon.getRandomAttackLoseMessage(ram), args));
+                else
+                    Console.WriteLine(string.Format(attackLoseMessage[ram.Next(0, attackLoseMessage.Length)], args));
             }
         }
     }

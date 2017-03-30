@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Texter_Games
 {
-    struct Contestant
+    class Contestant
     {
         public Random ram;
         public string name;
@@ -15,7 +15,6 @@ namespace Texter_Games
         public int survivalSkill;
         public int weaponSkill;
         public bool wounded;
-        public bool dead;
         public List<Item> Inventory;
 
         public Contestant(string name, int seedMod)
@@ -24,10 +23,9 @@ namespace Texter_Games
             this.name = name;
             health = 100;
             sanity = 100;
-            survivalSkill = ram.Next(1, 101);
-            weaponSkill = ram.Next(1, 101);
+            survivalSkill = ram.Next(0, 101);
+            weaponSkill = ram.Next(0, 101);
             wounded = false;
-            dead = false;
             Inventory = new List<Item>() { ItemManager.items[0] };
         }
 
@@ -46,6 +44,16 @@ namespace Texter_Games
             survivalSkill += amount;
         }
 
+        public void kill()
+        {
+            health = 0;
+        }
+
+        public bool isDead()
+        {
+            return health <= 0;
+        }
+
         public override string ToString()
         {
             string TmpInv = "";
@@ -58,7 +66,7 @@ namespace Texter_Games
             {
                 TmpInv = "Empty";
             }
-            return string.Format("Name: {0} | Health: {1} | Sanity: {2} | Is Dead: {3} | Surival Skill: {4} | Weapon Skill {5} | Wounded: {6} | Inventory: {7}", name, health, sanity, dead, survivalSkill, weaponSkill, wounded, TmpInv);
+            return string.Format("Name: {0} | Health: {1} | Sanity: {2} | Is Dead: {3} | Surival Skill: {4} | Weapon Skill {5} | Wounded: {6} | Inventory: {7}", name, health, sanity, isDead(), survivalSkill, weaponSkill, wounded, TmpInv);
         }
     }
 
@@ -71,6 +79,7 @@ namespace Texter_Games
         {
             if (args.Length <= 0) {
                 Console.WriteLine("Hey! You need to provide argunments of the contestants!");
+                Console.ReadKey();
                 return;
             }
             Console.Clear();
@@ -93,10 +102,9 @@ namespace Texter_Games
                 contestants = contestants.OrderBy(a => Guid.NewGuid()).ToList();
                 foreach (Contestant contestant in contestants)
                 {
-                    if (contestant.dead) continue;
+                    if (contestant.isDead()) continue;
                     contestant.modSanity(contestant.ram.Next(-15,0));
                     int action = contestant.ram.Next(1, 5);
-                    Console.WriteLine(action);
                     switch (action)
                     {
                         case 1: //Does "nothing"
@@ -120,8 +128,8 @@ namespace Texter_Games
                 Console.WriteLine("Currently living:");
                 foreach (Contestant contestant in contestants)
                 {
-                    if (contestant.dead) continue;
-                    Console.WriteLine(" - " + contestant.ToString());
+                    if (contestant.isDead()) continue;
+                    Console.WriteLine(" - " + contestant.name);
                 }
                 Console.WriteLine();
                 if (livingCount() > 1)
@@ -137,7 +145,7 @@ namespace Texter_Games
                 Console.WriteLine("A winner has been decided!");
                 foreach(Contestant contestant in contestants)
                 {
-                    if(!contestant.dead)
+                    if(!contestant.isDead())
                             Console.WriteLine(string.Format("{0} is the winner!", contestant.name));
                 }
             }
@@ -159,7 +167,7 @@ namespace Texter_Games
             do
             {
                 target = contestants[contestant.ram.Next(livingCount())];
-            } while (target.Equals(contestant) || target.dead);
+            } while (target.Equals(contestant) || target.isDead());
             int attack = contestant.weaponSkill;
             if (contestant.wounded) attack = attack - contestant.ram.Next(0, contestant.weaponSkill);
             if (contestant.Inventory.Count > 0)
@@ -181,7 +189,7 @@ namespace Texter_Games
 
             if (attack > defense)
             {
-                target.dead = true;
+                target.kill();
                 contestant.modSanity(contestant.ram.Next(-10, 10));
                 Messages.printAttackMessage(contestant, target, contestant.Inventory[contestant.ram.Next(contestant.Inventory.Count)], true);
             }
@@ -224,7 +232,7 @@ namespace Texter_Games
             }
             else
             {
-                contestant.dead = true;
+                contestant.kill();
                 Messages.printDeathMessage(contestant);
             }
         }
@@ -234,7 +242,7 @@ namespace Texter_Games
             int count = 0;
             foreach (Contestant contestant in contestants)
             {
-                if (!contestant.dead) count++;
+                if (!contestant.isDead()) count++;
             }
             return count;
         }
